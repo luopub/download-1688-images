@@ -50,8 +50,17 @@ document.addEventListener('DOMContentLoaded', function() {
             (function (imageUrls) {
               console.log('downloadImages', imageUrls)
               imageUrls.forEach(function(url) {
-                const filename = url.substring(url.lastIndexOf('/') + 1);
-                chrome.downloads.download({ url: url, filename: filename });
+                let filename
+                let theUrl
+
+                if (typeof url === 'string') {
+                  filename = url.substring(url.lastIndexOf('/') + 1);
+                  theUrl = url
+                } else {
+                  filename = url.filename
+                  theUrl = url.url
+                }
+                chrome.downloads.download({ url: theUrl, filename: filename });
               })
             })(response.imageUrls);
           }
