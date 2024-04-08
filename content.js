@@ -40,6 +40,11 @@ function getProductId() {
 function getImageUrls() {
   const imagesMain = getImageUrlsByXpath('//img[@class="detail-gallery-img"]')
   const imagesDetail = getImageUrlsByXpath('//div[@class="content-detail"]//img')
+
+  if (imagesDetail.filter(v=>v.indexOf('lazyload.png')>=0).length > 0) {
+    alert('请将网页拉到底后再下载！')
+    return []
+  }
   
   const imageUrls = []
 

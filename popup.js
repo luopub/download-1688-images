@@ -1,22 +1,3 @@
-// document.addEventListener('DOMContentLoaded', function() {
-//   var changeColor = document.getElementById('changeColor');
-
-//   changeColor.addEventListener('click', function() {
-//     chrome.tabs.executeScript({
-//       code: 'document.body.style.backgroundColor = "#ff0000";'
-//     });
-//   });
-// });
-
-
-function downloadImages(imageUrls) {
-  console.log('downloadImages', imageUrls)
-  imageUrls.forEach(function(url) {
-    const filename = url.substring(url.lastIndexOf('/') + 1);
-    chrome.downloads.download({ url: url, filename: filename });
-  });
-}
-
 document.addEventListener('DOMContentLoaded', function() {
   var changeColor = document.getElementById('changeColor');
 
@@ -33,13 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
   var downloadImages = document.getElementById('downloadImages');
 
   downloadImages.addEventListener('click', function() {
-    // chrome.runtime.sendMessage({ action: 'downloadImages' });
-    // chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-    //   if (tabs.length > 0) {
-    //     console.log('sendMessage to ', tabs[0])
-    //     chrome.tabs.sendMessage(tabs[0].id, { action: 'downloadImages' });
-    //   }
-    // });
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
       if (tabs.length > 0) {
         console.log('sendMessage to ', tabs[0])
