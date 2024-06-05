@@ -37,7 +37,7 @@ function getProductId() {
   return filename
 }
 
-function getImageUrls() {
+function getImageUrls1688() {
   const imagesMain = getImageUrlsByXpath('//img[@class="detail-gallery-img"]')
   const imagesDetail = getImageUrlsByXpath('//div[@class="content-detail"]//img')
 
@@ -71,6 +71,13 @@ function getImageUrls() {
   })
 
   return imageUrls
+}
+
+function getImageUrls() {
+  const urls1688 = getImageUrls1688()
+  if (urls1688.length > 0) {
+    return urls1688
+  }
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
