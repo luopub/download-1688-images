@@ -17,7 +17,7 @@ function getImageUrlsByXpath(xpath) {
   return imageUrls;
 }
 
-function getProductId() {
+function getProductId1688() {
   // Get the current URL
   const currentUrl = window.location.href;
 
@@ -48,7 +48,7 @@ function getImageUrls1688() {
   
   const imageUrls = []
 
-  const productId = getProductId()
+  const productId = getProductId1688()
 
   imagesMain.forEach((url, i) => {
     const parsedUrl = new URL(url);
@@ -73,11 +73,87 @@ function getImageUrls1688() {
   return imageUrls
 }
 
+
+function getAsinAmazon() {
+  // Get the current URL
+  const currentUrl = window.location.href;
+
+  // Parse the URL and get the path
+  const parsedUrl = new URL(currentUrl);
+  const path = parsedUrl.pathname;
+
+    // Regular expression to extract the file base name
+  const fileNameRegex = /^.*\/dp\/([0-9A-Z]{10})\/.*/;
+
+  // Extract the file base name
+  const match = path.match(fileNameRegex);
+  const filename = match ? match[1] : 'Unkown Product';
+
+  console.log('File base name:', filename);
+
+  return filename
+}
+
+
+function getImageUrlsAmazon() {
+  // const xpath = '//*[@id="main-image-container"]/ul/li[contains(@class, "image")][contains(@class, "item")]/span/span/div/img';
+  const xpath = '//*[@id="altImages"]/ul/li[contains(@class, "imageThumbnail")]//span[@class="a-button-text"]/img'
+  const iterator = document.evaluate(
+    xpath,
+    document,
+    null,
+    XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+    null
+  );
+
+  const imageUrls = [];
+  let thisNode = null;
+  let i = 0;
+  while ((thisNode = iterator.snapshotItem(i++))) {
+    // 检查data-old-hires属性是否存在
+    // if (thisNode.hasAttribute('data-old-hires')) {
+    //   console.log('data-old-hires', thisNode.getAttribute('data-old-hires'));
+    //   // 如果存在，将data-old-hires属性的值添加到imageUrls数组
+    //   imageUrls.push(thisNode.getAttribute('data-old-hires'));
+    // } else {
+    // "https://m.media-amazon.com/images/I/51zOE3g2OqL._AC_US100_.jpg" => "https://m.media-amazon.com/images/I/51zOE3g2OqL.jpg"
+    const match = thisNode.src.match('^(.*)+\\.([^\\.]+)\\.([^\\.]+)$')
+    let src;
+    if (match && match.length == 4) {
+      src = match[1] + '.' + match[3]
+    } else {
+      src = thisNode.src
+    }
+    console.log('src', thisNode.src, src);
+    // 如果不存在，将src属性的值添加到imageUrls数组
+    imageUrls.push(src);
+  }
+
+  const asin = getAsinAmazon()
+
+  return imageUrls.map((url, i) => {
+    const parsedUrl = new URL(url);
+    const match = parsedUrl.pathname.match(/\.([^.]+)$/)
+    const ext = match ? match[1] : 'jpg'
+    return {
+      filename: asin + '-main-' + i + '.' + ext,
+      url: url
+    }
+  });
+}
+
 function getImageUrls() {
   const urls1688 = getImageUrls1688()
   if (urls1688.length > 0) {
     return urls1688
   }
+
+  const urlsAmazon = getImageUrlsAmazon()
+  if (urlsAmazon.length > 0) {
+    return urlsAmazon
+  }
+
+  return []
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
