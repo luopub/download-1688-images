@@ -142,6 +142,62 @@ function getImageUrlsAmazon() {
   });
 }
 
+function getTemuGoodsId() {
+  // Get the current URL
+  const currentUrl = window.location.href;
+
+  // Parse the URL and get the path
+  const parsedUrl = new URL(currentUrl);
+  const path = parsedUrl.pathname;
+
+  // Extract the file base name
+  const match = path.match(/^.*\-([0-9]+)\.html$/);
+  const goodsId = match ? match[1] : 'Unkown Product';
+
+  console.log('goodsId:', goodsId);
+
+  return goodsId
+}
+
+function getImageUrlsTemu() {
+  const xpath = '//div[@class="baseContent"]//div[@tabindex="0"]//div[@data-index]/img'
+  const iterator = document.evaluate(
+    xpath,
+    document,
+    null,
+    XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+    null
+  );
+
+  const imageUrls = [];
+  let thisNode = null;
+  let i = 0;
+  while ((thisNode = iterator.snapshotItem(i++))) {
+    const match = thisNode.src.match(/^([^\\?]+)\\?.*$/)
+    let src;
+    if (match && match.length == 2) {
+      src = match[1]
+    } else {
+      src = thisNode.src
+    }
+    console.log('src', thisNode.src, src);
+    // 如果不存在，将src属性的值添加到imageUrls数组
+    imageUrls.push(src);
+  }
+
+  const goodsId = getTemuGoodsId()
+
+  return imageUrls.map((url, i) => {
+    const parsedUrl = new URL(url);
+    const match = parsedUrl.pathname.match(/\.([^.]+)$/)
+    const ext = match ? match[1] : 'jpg'
+    return {
+      filename: goodsId + '-main-' + i + '.' + ext,
+      url: url
+    }
+  });
+}
+
 function getImageUrls() {
   const urls1688 = getImageUrls1688()
   if (urls1688.length > 0) {
@@ -151,6 +207,11 @@ function getImageUrls() {
   const urlsAmazon = getImageUrlsAmazon()
   if (urlsAmazon.length > 0) {
     return urlsAmazon
+  }
+
+  const urlsTemu = getImageUrlsTemu()
+  if (urlsTemu.length > 0) {
+    return urlsTemu
   }
 
   return []
