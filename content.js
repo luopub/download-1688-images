@@ -38,6 +38,9 @@ function getProductId1688() {
 }
 
 function getImageUrls1688() {
+  if (window.location.href.indexOf('1688.com') < 0) {
+    return []
+  }
   const imagesMain = getImageUrlsByXpath('//img[@class="detail-gallery-img"]')
   const imagesDetail = getImageUrlsByXpath('//div[@class="content-detail"]//img')
 
@@ -96,6 +99,9 @@ function getAsinAmazon() {
 
 
 function getImageUrlsAmazon() {
+  if (window.location.href.indexOf('amazon.com') < 0) {
+    return []
+  }
   // const xpath = '//*[@id="main-image-container"]/ul/li[contains(@class, "image")][contains(@class, "item")]/span/span/div/img';
   const xpath = '//*[@id="altImages"]/ul/li[contains(@class, "imageThumbnail")]//span[@class="a-button-text"]/img'
   const iterator = document.evaluate(
@@ -160,6 +166,9 @@ function getTemuGoodsId() {
 }
 
 function getImageUrlsTemu() {
+  if (window.location.href.indexOf('temu.com') < 0) {
+    return []
+  }
   const xpath = '//div[@class="baseContent"]//div[@tabindex="0"]//div[@data-index]/img'
   const iterator = document.evaluate(
     xpath,
@@ -173,16 +182,25 @@ function getImageUrlsTemu() {
   let thisNode = null;
   let i = 0;
   while ((thisNode = iterator.snapshotItem(i++))) {
-    const match = thisNode.src.match(/^([^\\?]+)\\?.*$/)
     let src;
+    if (thisNode.hasAttribute('src')) {
+      src = thisNode.getAttribute('src');
+    } else if (thisNode.hasAttribute('data-src')) {
+      // 如果还未显示过的主图，就没有src属性
+      src = thisNode.getAttribute('data-src');
+    } else {
+      continue;
+    }
+    const match = src.match(/^([^\\?]+)\\?.*$/)
     if (match && match.length == 2) {
       src = match[1]
     } else {
       src = thisNode.src
     }
     console.log('src', thisNode.src, src);
-    // 如果不存在，将src属性的值添加到imageUrls数组
-    imageUrls.push(src);
+    if (src && src.startsWith('http')) {
+      imageUrls.push(src);
+    }
   }
 
   const goodsId = getTemuGoodsId()
@@ -192,7 +210,7 @@ function getImageUrlsTemu() {
     const match = parsedUrl.pathname.match(/\.([^.]+)$/)
     const ext = match ? match[1] : 'jpg'
     return {
-      filename: goodsId + '-main-' + i + '.' + ext,
+      filename: 'T' + goodsId + '-main-' + i + '.' + ext,
       url: url
     }
   });
