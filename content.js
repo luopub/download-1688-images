@@ -41,8 +41,8 @@ function getImageUrls1688() {
   if (window.location.href.indexOf('1688.com') < 0) {
     return []
   }
-  const imagesMain = getImageUrlsByXpath('//img[@class="detail-gallery-img"]')
-  const imagesDetail = getImageUrlsByXpath('//div[@class="content-detail"]//img')
+  const imagesMain = getImageUrlsByXpath('//img[contains(@class,"detail-gallery-img")]')
+  const imagesDetail = getImageUrlsByXpath('//div[contains(@class,"content-detail")]//img')
 
   if (imagesDetail.filter(v=>v.indexOf('lazyload.png')>=0).length > 0) {
     alert('请将网页拉到底后再下载！')
