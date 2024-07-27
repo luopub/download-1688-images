@@ -98,7 +98,7 @@ function getAsinAmazon() {
 }
 
 
-function getImageUrlsAmazon() {
+function getImageUrlsAmazon_old() {
   if (window.location.href.indexOf('amazon.com') < 0) {
     return []
   }
@@ -146,6 +146,83 @@ function getImageUrlsAmazon() {
       url: url
     }
   });
+}
+
+function extractJsonSubstring(str) {
+  const startIndex = str.indexOf('\'{"');
+  const endIndex = str.indexOf('"}\'', startIndex);
+
+  if (startIndex !== -1 && endIndex !== -1) {
+      return str.slice(startIndex + 1, endIndex + 2); // +2 to include the "}"
+  }
+
+  return null;
+}
+
+function getScriptContentByXPath() {
+  // Check if we're in a browser environment
+  if (typeof document === 'undefined') {
+    console.error('This function is meant to be run in a browser environment.');
+    return null;
+  }
+
+  // Create an XPath evaluator
+  const evaluator = new XPathEvaluator();
+
+  // Create an XPath expression
+  const expression = evaluator.createExpression('//script[contains(text(), "jQuery.parseJSON")]');
+
+  // Evaluate the XPath expression
+  const result = expression.evaluate(
+    document,
+    XPathResult.FIRST_ORDERED_NODE_TYPE,
+    null
+  );
+
+  // Check if a node was found
+  if (result.singleNodeValue) {
+    // Return the text content of the script tag
+    return result.singleNodeValue.textContent;
+  } else {
+    console.log('No matching script tag found.');
+    return null;
+  }
+}
+
+function getImageUrlsAmazon() {
+  if (window.location.href.indexOf('amazon.com') < 0) {
+    return []
+  }
+  const scriptContent = getScriptContentByXPath()
+  console.log('scriptContent length', scriptContent.length);
+
+  const jsonContent = extractJsonSubstring(scriptContent)
+  console.log('jsonContent length', jsonContent.length);
+  console.log('jsonContent', JSON.parse(jsonContent));
+
+  const jsonObject = JSON.parse(jsonContent)
+
+  let images = new Set()
+  for (let color in jsonObject.colorImages) {
+    console.log('color', color);
+    console.log('colorImages', jsonObject.colorImages[color]);
+    for (let i in jsonObject.colorImages[color]) {
+      images.add(jsonObject.colorImages[color][i].hiRes)
+    }
+  }
+  console.log('images count', images.size);
+
+  const asin = getAsinAmazon()
+
+  return [...images].map((v,i) => {
+    const parsedUrl = new URL(v);
+    const match = parsedUrl.pathname.match(/\.([^.]+)$/)
+    const ext = match ? match[1] : 'jpg'
+    return {
+      filename: asin + '-main-' + i + '.' + ext,
+      url: v
+    }
+  })
 }
 
 function getTemuGoodsId() {
