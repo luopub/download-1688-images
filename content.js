@@ -214,7 +214,8 @@ function getImageUrlsAmazon() {
 
   const asin = getAsinAmazon()
 
-  return [...images].map((v,i) => {
+  // Remove invalid elements, then map to object required by downloader.
+  return [...images].filter(v=>!!v).map((v,i) => {
     const parsedUrl = new URL(v);
     const match = parsedUrl.pathname.match(/\.([^.]+)$/)
     const ext = match ? match[1] : 'jpg'
