@@ -159,7 +159,7 @@ function extractJsonSubstring(str) {
   return null;
 }
 
-function getScriptContentByXPath() {
+function getScriptContentByXPath(xpath) {
   // Check if we're in a browser environment
   if (typeof document === 'undefined') {
     console.error('This function is meant to be run in a browser environment.');
@@ -170,7 +170,7 @@ function getScriptContentByXPath() {
   const evaluator = new XPathEvaluator();
 
   // Create an XPath expression
-  const expression = evaluator.createExpression('//script[contains(text(), "jQuery.parseJSON")]');
+  const expression = evaluator.createExpression(xpath);
 
   // Evaluate the XPath expression
   const result = expression.evaluate(
@@ -193,21 +193,42 @@ function getImageUrlsAmazon() {
   if (window.location.href.indexOf('amazon.com') < 0) {
     return []
   }
-  const scriptContent = getScriptContentByXPath()
-  console.log('scriptContent length', scriptContent.length);
+  // Valid for those who have multiple color SKUs
+  let scriptContent = getScriptContentByXPath('//script[contains(text(), "jQuery.parseJSON")]')
+  console.log('scriptContent1 length', scriptContent.length);
 
-  const jsonContent = extractJsonSubstring(scriptContent)
-  console.log('jsonContent length', jsonContent.length);
-  console.log('jsonContent', JSON.parse(jsonContent));
+  let jsonContent = extractJsonSubstring(scriptContent)
+  console.log('jsonContent1 length', jsonContent.length);
+  console.log('jsonContent1', JSON.parse(jsonContent));
 
-  const jsonObject = JSON.parse(jsonContent)
+  let jsonObject = JSON.parse(jsonContent)
 
   let images = new Set()
-  for (let color in jsonObject.colorImages) {
-    console.log('color', color);
-    console.log('colorImages', jsonObject.colorImages[color]);
-    for (let i in jsonObject.colorImages[color]) {
-      images.add(jsonObject.colorImages[color][i].hiRes)
+
+  if (Object.keys(jsonObject.colorImages).length > 0) {
+    for (let color in jsonObject.colorImages) {
+      console.log('color', color);
+      console.log('colorImages', jsonObject.colorImages[color]);
+      for (let i in jsonObject.colorImages[color]) {
+        images.add(jsonObject.colorImages[color][i].hiRes)
+      }
+    }
+  } else {
+    // Otherwise, the link should have single SKU
+    scriptContent = getScriptContentByXPath('//script[contains(text(), "ImageBlockATF")]')
+    console.log('scriptContent2 length', scriptContent.length);
+
+    // Find colorImages
+    let regex = /'colorImages': *.*?\}\]\}/g;
+
+    let matches = scriptContent.match(regex);
+
+    if (matches.length > 0) {
+      let func = new Function('{' + matches[0].replace("'colorImages':", 'return') + '}');
+      let colorImages = func()
+      colorImages.initial.forEach(v => {
+        images.add(v.hiRes)
+      })
     }
   }
   console.log('images count', images.size);
