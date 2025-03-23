@@ -1,11 +1,27 @@
-chrome.browserAction.onClicked.addListener(function() {
-  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-    if (tabs.length > 0) {
-      chrome.tabs.sendMessage(tabs[0].id, { action: 'getImageUrls' }, function(response) {
-        if (response && response.imageUrls) {
-          downloadImages(response.imageUrls);
-        }
-      });
-    }
-  });
+// Service worker for image download functionality
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('Extension installed');
 });
+
+// Message handler for content script communication
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log(`[${new Date().toISOString()}] Message received`, {
+    action: message.action,
+    content: message,
+    sender: sender
+  });
+  if (message.action === 'downloadImages') {
+    downloadImages(message.imageUrls);
+    sendResponse({status: 'success'});
+  }
+  return true; // Keep message channel open for async response
+});
+
+function downloadImages(imageUrls) {
+  imageUrls.forEach((url, index) => {
+    chrome.downloads.download({
+      url: url,
+      filename: `image_${index + 1}.jpg`
+    });
+  });
+}

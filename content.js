@@ -396,11 +396,27 @@ function getImageUrls() {
   return []
 }
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  console.log('chrome.runtime.onMessage', request);
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log(`[${new Date().toISOString()}] Message received`, {
+    action: request.action,
+    content: request,
+    sender: sender
+  });
   if (request.action === 'getImageUrls') {
-    const imageUrls = getImageUrls();
-    console.log('Got imageUrls', imageUrls)
-    sendResponse({ imageUrls: imageUrls });
+    try {
+      const imageUrls = getImageUrls();
+      console.log('Got imageUrls', imageUrls);
+      sendResponse({ 
+        status: 'success',
+        imageUrls: imageUrls.map(img => img.url) 
+      });
+    } catch (error) {
+      console.error('Error getting image URLs:', error);
+      sendResponse({ 
+        status: 'error',
+        message: error.message 
+      });
+    }
+    return true; // Keep message channel open for async response
   }
 });
