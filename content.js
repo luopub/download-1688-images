@@ -315,6 +315,63 @@ function getImageUrlsTemu() {
   });
 }
 
+function getWalmartProductIdFromUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const parts = pathname.split('/').filter(part => part.length > 0); // Split by '/' and remove empty strings
+
+    if (parts.length > 0) {
+      const lastPart = parts[parts.length - 1];
+      // Check if the last part is a number using a regular expression
+      if (/^\d+$/.test(lastPart)) {
+        return lastPart;
+      }
+    }
+    return null; // Return null if no numeric ID is found at the end
+  } catch (error) {
+    console.error("Error parsing URL:", error);
+    return null;
+  }
+}
+
+function getImageUrlsWalmart() {
+  if (window.location.href.indexOf('walmart.com') < 0) {
+    return []
+  }
+  // 1. Get text content of element with id="__NEXT_DATA__" as json format
+  const dataElement = document.getElementById("__NEXT_DATA__");
+  let jsonData = {};
+  if (dataElement) {
+    try {
+      jsonData = JSON.parse(dataElement.textContent);
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+      return []; // Return empty list if parsing fails
+    }
+  } else {
+    return []; // Return empty list if element not found
+  }
+
+  // 2. Get json object props.pageProps.initialData.data.product.imageMap
+  const imageMap = jsonData?.props?.pageProps?.initialData?.data?.product?.imageMap;
+
+  // 3. Get url values from imageMap (assuming it's a dictionary)
+  const imageUrls = imageMap ? Object.values(imageMap).map(item => item.url) : [];
+
+  const productId = getWalmartProductIdFromUrl(window.location.href)
+
+  return imageUrls.map((url, i) => {
+    const parsedUrl = new URL(url);
+    const match = parsedUrl.pathname.match(/\.([^.]+)$/)
+    const ext = match ? match[1] : 'jpg'
+    return {
+      filename: 'W' + productId + '-main-' + i + '.' + ext,
+      url: url
+    }
+  });
+}
+
 function getImageUrls() {
   const urls1688 = getImageUrls1688()
   if (urls1688.length > 0) {
@@ -329,6 +386,11 @@ function getImageUrls() {
   const urlsTemu = getImageUrlsTemu()
   if (urlsTemu.length > 0) {
     return urlsTemu
+  }
+
+  const urlsWalmart = getImageUrlsWalmart()
+  if (urlsWalmart.length > 0) {
+    return urlsWalmart
   }
 
   return []

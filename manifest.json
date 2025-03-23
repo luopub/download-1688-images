@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Download 1688 Images",
+  "name": "Download Product Images",
   "version": "1.0",
-  "description": "Download 1688 Images",
+  "description": "Download Product Images",
   "browser_action": {
     "default_icon": "icon.png",
     "default_popup": "popup.html"
