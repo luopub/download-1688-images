@@ -37,12 +37,90 @@ function getProductId1688() {
   return filename
 }
 
-function getImageUrls1688() {
+function getImageUrls1688_old() {
   if (window.location.href.indexOf('1688.com') < 0) {
     return []
   }
   const imagesMain = getImageUrlsByXpath('//img[contains(@class,"detail-gallery-img")]')
   const imagesDetail = getImageUrlsByXpath('//div[contains(@class,"content-detail")]//img')
+
+  if (imagesDetail.filter(v=>v.indexOf('lazyload.png')>=0).length > 0) {
+    alert('请将网页拉到底后再下载！')
+    return []
+  }
+  
+  const imageUrls = []
+
+  const productId = getProductId1688()
+
+  imagesMain.forEach((url, i) => {
+    const parsedUrl = new URL(url);
+    const match = parsedUrl.pathname.match(/\.([^.]+)$/)
+    const ext = match ? match[1] : 'jpg'
+    imageUrls.push({
+      filename: productId + '-main-' + i + '.' + ext,
+      url: url
+    })
+  })
+
+  imagesDetail.forEach((url, i) => {
+    const parsedUrl = new URL(url);
+    const match = parsedUrl.pathname.match(/\.([^.]+)$/)
+    const ext = match ? match[1] : 'jpg'
+    imageUrls.push({
+      filename: productId + '-detail-' + i + '.' + ext,
+      url: url
+    })
+  })
+
+  return imageUrls
+}
+
+// 获取页面中所有的 shadow root
+function getAllShadowRoots(node = document.body) {
+  let shadowRoots = [];
+  if (node.shadowRoot) {
+      shadowRoots.push(node.shadowRoot);
+  }
+  for (let child of node.children) {
+      shadowRoots = shadowRoots.concat(getAllShadowRoots(child));
+  }
+  return shadowRoots;
+}
+
+// 在指定的 shadow root 中查找符合 CSS 选择器的 img 元素
+function findImagesInShadowRoot(shadowRoot, selector) {
+  return Array.from(shadowRoot.querySelectorAll(selector));
+}
+
+// 获取所有 shadow root 中的 img 元素的 src 属性
+function getAllImageSrcsInShadowRoots(selector) {
+  let allSrcs = [];
+  let shadowRoots = getAllShadowRoots();
+  for (let shadowRoot of shadowRoots) {
+      let images = findImagesInShadowRoot(shadowRoot, selector);
+      for (let img of images) {
+          if (img.src) {
+              allSrcs.push(img.src);
+          }
+      }
+  }
+  return allSrcs;
+}
+
+// 使用示例
+// let selector = 'div#detail img'; // 将 XPath 转换为 CSS 选择器
+// let imageSrcs = getAllImageSrcsInShadowRoots(selector);
+// console.log(imageSrcs);
+
+function getImageUrls1688() {
+  // 1688前端更新了-20250323
+  if (window.location.href.indexOf('1688.com') < 0) {
+    return []
+  }
+  const imagesMain_raw = getImageUrlsByXpath('//div[contains(@class, "od-gallery-turn-item-wrapper")]/img[@class="od-gallery-img"]')
+  const imagesMain = imagesMain_raw.map(v => v.replace('jpg_b.jpg', 'jpg'))
+  const imagesDetail = getAllImageSrcsInShadowRoots('div#detail img')
 
   if (imagesDetail.filter(v=>v.indexOf('lazyload.png')>=0).length > 0) {
     alert('请将网页拉到底后再下载！')
@@ -408,7 +486,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       console.log('Got imageUrls', imageUrls);
       sendResponse({ 
         status: 'success',
-        imageUrls: imageUrls.map(img => img.url) 
+        imageUrls: imageUrls
       });
     } catch (error) {
       console.error('Error getting image URLs:', error);

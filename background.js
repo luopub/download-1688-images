@@ -20,8 +20,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 function downloadImages(imageUrls) {
   imageUrls.forEach((url, index) => {
     chrome.downloads.download({
-      url: url,
-      filename: `image_${index + 1}.jpg`
+      url: url.url,
+      filename: url.filename
     });
   });
 }
