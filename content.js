@@ -456,6 +456,11 @@ function getImageUrls() {
     return urls1688
   }
 
+  const urls1688_old = getImageUrls1688_old()
+  if (urls1688_old.length > 0) {
+    return urls1688_old
+  }
+
   const urlsAmazon = getImageUrlsAmazon()
   if (urlsAmazon.length > 0) {
     return urlsAmazon
