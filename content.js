@@ -30,7 +30,7 @@ function getProductId1688() {
 
   // Extract the file base name
   const match = path.match(fileNameRegex);
-  const filename = match ? match[1] : 'Unkown Product';
+  const filename = match ? match[1] : '';
 
   console.log('File base name:', filename);
 
@@ -479,6 +479,26 @@ function getImageUrls() {
   return []
 }
 
+function get1688LinkId() {
+  // 1688产品的linkId是由产品ID和公司名称拼接而成的：<productId>-<companyName>
+  // productId从URL中获取，通过函数getProductId1688()得到
+  // companyName从页面中通过xpath获取：//a[contains(@class,"shop-company-name")]/h1/text()
+  if (window.location.href.indexOf('1688.com/offer/') < 0) {
+    return ''
+  }
+  const xpath1 = "//a[contains(@class,'shop-company-name')]/h1/text()"
+  const iterator1 = document.evaluate(
+    xpath1,
+    document,
+    null,
+    XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+    null
+  );
+  
+  const it = iterator1.snapshotItem(0);
+  return getProductId1688() + '-' + it.textContent
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log(`[${new Date().toISOString()}] Message received`, {
     action: request.action,
@@ -500,6 +520,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         message: error.message 
       });
     }
+    return true; // Keep message channel open for async response
+  }
+  else if (request.action === 'get1688LinkId') {
+    const linkId = get1688LinkId();
+    if (!linkId) {
+      sendResponse({ 
+        status: 'error',
+        message: 'Failed to get 1688 link ID' 
+      });
+      return true; // Keep message channel open for async response
+    }
+    console.log('Got 1688 linkId', linkId);
+    sendResponse({ 
+      status: 'success',
+      linkId: linkId
+    });
     return true; // Keep message channel open for async response
   }
 });
