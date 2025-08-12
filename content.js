@@ -499,6 +499,40 @@ function get1688LinkId() {
   return getProductId1688() + '-' + it.textContent
 }
 
+function getTmallLinkId() {
+  // Tmall产品的linkId是由产品ID和店铺名称拼接而成的：tmall<id>-<shopname>
+  // id从URL中获取查询参数id
+  // shopname从页面中通过xpath获取：//span[starts-with(@class, "shopName--")]/text()
+  if (window.location.href.indexOf('tmall.com') < 0) {
+    return ''
+  }
+  
+  // 从URL中获取id参数
+  const urlParams = new URLSearchParams(window.location.search);
+  const id = urlParams.get('id');
+  if (!id) {
+    return '';
+  }
+
+  // 通过XPath获取店铺名称
+  const xpath = "//span[starts-with(@class, 'shopName--')]";
+  const iterator = document.evaluate(
+    xpath,
+    document,
+    null,
+    XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+    null
+  );
+  
+  const shopNameNode = iterator.snapshotItem(0);
+  if (!shopNameNode) {
+    return '';
+  }
+
+  const shopName = shopNameNode.textContent.trim();
+  return `tmall${id}-${shopName}`;
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log(`[${new Date().toISOString()}] Message received`, {
     action: request.action,
@@ -532,6 +566,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return true; // Keep message channel open for async response
     }
     console.log('Got 1688 linkId', linkId);
+    sendResponse({ 
+      status: 'success',
+      linkId: linkId
+    });
+    return true; // Keep message channel open for async response
+  }
+  else if (request.action === 'getTmallLinkId') {
+    const linkId = getTmallLinkId();
+    if (!linkId) {
+      sendResponse({ 
+        status: 'error',
+        message: 'Failed to get Tmall link ID' 
+      });
+      return true; // Keep message channel open for async response
+    }
+    console.log('Got Tmall linkId', linkId);
     sendResponse({ 
       status: 'success',
       linkId: linkId

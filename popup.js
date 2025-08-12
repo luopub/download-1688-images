@@ -78,5 +78,37 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Get 1688 Link Id error:', error);
     }
   });
+
+  const buttonGetTmallLinkId = document.getElementById('getTmallLinkId');
+  buttonGetTmallLinkId.addEventListener('click', async () => {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      
+      if (!tab) {
+        throw new Error('No active tab found');
+      }
+
+      console.log(`[${new Date().toISOString()}] Sending message`, {
+        action: 'getTmallLinkId',
+        tabId: tab.id,
+        tabUrl: tab.url
+      });
+      const response = await chrome.tabs.sendMessage(tab.id, { 
+        action: 'getTmallLinkId'
+      });
+
+      if (response.status === 'success') {
+        statusMessage.textContent = response.linkId;
+        statusMessage.style.color = 'green';
+        navigator.clipboard.writeText(response.linkId);
+      } else {
+        throw new Error(response.message || 'Failed to Get Tmall Link Id');
+      }
+    } catch (error) {
+      statusMessage.textContent = `Error: ${error.message}`;
+      statusMessage.style.color = 'red';
+      console.error('Get Tmall Link Id error:', error);
+    }
+  });
 });
 
