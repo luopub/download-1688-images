@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const buttonGetTmallLinkId = document.getElementById('getTmallLinkId');
+  const buttonGetTmallLinkId = document.getElementById('getTmallTaobaoLinkId');
   buttonGetTmallLinkId.addEventListener('click', async () => {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -89,12 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       console.log(`[${new Date().toISOString()}] Sending message`, {
-        action: 'getTmallLinkId',
+        action: 'getTmallTaobaoLinkId',
         tabId: tab.id,
         tabUrl: tab.url
       });
       const response = await chrome.tabs.sendMessage(tab.id, { 
-        action: 'getTmallLinkId'
+        action: 'getTmallTaobaoLinkId'
       });
 
       if (response.status === 'success') {

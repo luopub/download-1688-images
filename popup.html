@@ -9,7 +9,7 @@
         background-color: #f9f9f9;
         border-radius: 8px;
       }
-      #downloadImages, #get1688LinkId, #getTmallLinkId {
+      .normalButton {
         width: 100%;
         padding: 10px;
         margin-bottom: 10px;
@@ -21,7 +21,7 @@
         font-size: 14px;
         transition: background-color 0.3s;
       }
-      #downloadImages:hover, #get1688LinkId:hover, #getTmallLinkId:hover {
+      .normalButton:hover {
         background-color: #45a049;
       }
       #statusMessage {
@@ -36,10 +36,10 @@
     </style>
   </head>
   <body>
-    <button id="downloadImages">Download Product Images: 1688 / Amazon / Temu / Walmart</button>
+    <button id="downloadImages" class="normalButton">Download Product Images: 1688 / Amazon / Temu / Walmart</button>
     <!-- Get 1688 Link Id -->
-    <button id="get1688LinkId">Get 1688 Link Id</button>
-    <button id="getTmallLinkId">Get Tmall Link Id</button>
+    <button id="get1688LinkId" class="normalButton">Get 1688 Link Id</button>
+    <button id="getTmallTaobaoLinkId" class="normalButton">Get Tmall & Taobao Link Id</button>
     <div id="statusMessage"></div>
     <script src="popup.js"></script>
   </body>

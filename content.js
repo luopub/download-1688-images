@@ -17,6 +17,26 @@ function getImageUrlsByXpath(xpath) {
   return imageUrls;
 }
 
+function getImageUrlsByXpath2(xpath) {
+  const iterator = document.evaluate(
+    xpath,
+    document,
+    null,
+    XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+    null
+  );
+
+  const imageUrls = [];
+  let thisNode = null;
+  let i = 0;
+  while ((thisNode = iterator.snapshotItem(i++))) {
+    imageUrls.push(thisNode.getAttribute('data-src'));
+  }
+
+  return imageUrls;
+}
+
+
 function getProductId1688() {
   // Get the current URL
   const currentUrl = window.location.href;
@@ -175,6 +195,61 @@ function getAsinAmazon() {
   return filename
 }
 
+
+function getImageUrlsTmall() {
+  if (window.location.href.indexOf('detail.tmall.com') < 0) {
+    return [];
+  }
+
+  // 获取商品 ID
+  const parsedUrl = new URL(window.location.href);
+  const productId = parsedUrl.searchParams.get('id') || 'unknown';
+
+  // 获取轮播图列表
+  const mainImagesXpath = '//div[@id="left-content-area"]//div[starts-with(@class,"picGallery--")]//div[starts-with(@class,"thumbnailItem--")]/img';
+  const mainImagesRaw = getImageUrlsByXpath(mainImagesXpath);
+  const mainImages = mainImagesRaw.map(url => url.replace(/_q50\.jpg_\.webp$/, ''));
+
+  // 获取 SKU 图列表
+  const skuImagesXpath = '//div[starts-with(@class,"skuValueWrap--")]//div[starts-with(@class,"valueItemImgWrap--")]/img';
+  const skuImagesRaw = getImageUrlsByXpath(skuImagesXpath);
+  const skuImages = skuImagesRaw.map(url => url.replace(/_90x90q30\.jpg_\.webp$/, ''));
+
+  // 获取详情图列表
+  const detailImagesXpath1 = '//div[@class="descV8-richtext"]//img';
+  const detailImagesRaw1 = getImageUrlsByXpath(detailImagesXpath1); // 使用 getImageUrlsByXpath 获取 src 属性
+  const detailImages1 = detailImagesRaw1.filter(url => url.includes('.jpg'));
+  const detailImagesXpath2 = '//div[@class="descV8-richtext"]//img';
+  const detailImagesRaw2 = getImageUrlsByXpath2(detailImagesXpath2);  // 使用 getImageUrlsByXpath2 获取 data-src 属性
+  const detailImages2 = detailImagesRaw2.filter(url => url.includes('.jpg'));
+  const detailImages = [...detailImages1, ...detailImages2];
+
+  // 合并结果
+  const imageUrls = [];
+
+  mainImages.forEach((url, i) => {
+    imageUrls.push({
+      filename: `${productId}-main-${i}.jpg`,
+      url: url
+    });
+  });
+
+  skuImages.forEach((url, i) => {
+    imageUrls.push({
+      filename: `${productId}-sku-${i}.jpg`,
+      url: url
+    });
+  });
+
+  detailImages.forEach((url, i) => {
+    imageUrls.push({
+      filename: `${productId}-detail-${i}.jpg`,
+      url: url
+    });
+  });
+
+  return imageUrls;
+}
 
 function getImageUrlsAmazon_old() {
   if (window.location.href.indexOf('amazon.com') < 0) {
@@ -476,6 +551,11 @@ function getImageUrls() {
     return urlsWalmart
   }
 
+  const urlsTmall = getImageUrlsTmall()
+  if (urlsTmall.length > 0) {
+    return urlsTmall
+  }
+
   return []
 }
 
@@ -499,11 +579,15 @@ function get1688LinkId() {
   return getProductId1688() + '-' + it.textContent
 }
 
-function getTmallLinkId() {
+function getTmallTaobaoLinkId() {
   // Tmall产品的linkId是由产品ID和店铺名称拼接而成的：tmall<id>-<shopname>
   // id从URL中获取查询参数id
   // shopname从页面中通过xpath获取：//span[starts-with(@class, "shopName--")]/text()
-  if (window.location.href.indexOf('tmall.com') < 0) {
+  if (window.location.href.indexOf('tmall.com') >= 0) {
+    prefix = 'tmall'
+  } else if (window.location.href.indexOf('item.taobao.com') >= 0) {
+    prefix = 'taobao'
+  } else {
     return ''
   }
   
@@ -530,7 +614,7 @@ function getTmallLinkId() {
   }
 
   const shopName = shopNameNode.textContent.trim();
-  return `tmall${id}-${shopName}`;
+  return `${prefix}${id}-${shopName}`;
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -572,8 +656,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true; // Keep message channel open for async response
   }
-  else if (request.action === 'getTmallLinkId') {
-    const linkId = getTmallLinkId();
+  else if (request.action === 'getTmallTaobaoLinkId') {
+    const linkId = getTmallTaobaoLinkId();
     if (!linkId) {
       sendResponse({ 
         status: 'error',
