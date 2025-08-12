@@ -216,13 +216,13 @@ function getImageUrlsTmall() {
   const skuImages = skuImagesRaw.map(url => url.replace(/_90x90q30\.jpg_\.webp$/, ''));
 
   // 获取详情图列表
-  const detailImagesXpath1 = '//div[@class="descV8-richtext"]//img'; // tmall detail images
+  const detailImagesXpath1 = '//div[@class="descV8-richtext"]//img[@src]'; // tmall detail images
   const detailImagesRaw1 = getImageUrlsByXpath(detailImagesXpath1); // 使用 getImageUrlsByXpath 获取 src 属性
   const detailImages1 = detailImagesRaw1.filter(url => url.includes('.jpg'));
-  const detailImagesXpath2 = '//div[@class="descV8-richtext"]//img';  // tmall detail images
+  const detailImagesXpath2 = '//div[@class="descV8-richtext"]//img[@data-src]';  // tmall detail images
   const detailImagesRaw2 = getImageUrlsByXpath2(detailImagesXpath2);  // 使用 getImageUrlsByXpath2 获取 data-src 属性
   const detailImages2 = detailImagesRaw2.filter(url => url.includes('.jpg'));
-  const detailImagesXpath3 = '//div[@class="descV8-singleImage"]//img';  // taobao detail images
+  const detailImagesXpath3 = '//div[@class="descV8-singleImage"]//img[@src]';  // taobao detail images
   const detailImagesRaw3 = getImageUrlsByXpath(detailImagesXpath3); // 使用 getImageUrlsByXpath 获取 src 属性
   const detailImages3 = detailImagesRaw3.filter(url => url.includes('.jpg'));
   const detailImages = [...detailImages1, ...detailImages2, ...detailImages3];
