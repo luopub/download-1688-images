@@ -565,7 +565,7 @@ function getImageUrls() {
 function get1688LinkId() {
   // 1688产品的linkId是由产品ID和公司名称拼接而成的：<productId>-<companyName>
   // productId从URL中获取，通过函数getProductId1688()得到
-  // companyName从页面中通过xpath获取：//a[contains(@class,"shop-company-name")]/h1/text()
+  // companyName从页面中通过xpath获取：//a[contains(@class,"shop-company-name")]/h1/text()(
   if (window.location.href.indexOf('1688.com/offer/') < 0) {
     return ''
   }
@@ -578,8 +578,10 @@ function get1688LinkId() {
     null
   );
   
-  const it = iterator1.snapshotItem(0);
-  return getProductId1688() + '-' + it.textContent
+  const companyName = iterator1.snapshotItem(0).textContent.trim();
+
+  const firstPrice = document.evaluate('//span[@class="item-price-stock"][1]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue?.textContent?.replace(/\s+/g, '').replace('¥', '') || '';
+  return getProductId1688() + '-' + companyName + '-' + firstPrice;
 }
 
 function getTmallTaobaoLinkId() {
