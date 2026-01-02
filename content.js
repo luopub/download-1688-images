@@ -349,27 +349,32 @@ function getImageUrlsAmazon() {
   if (window.location.href.indexOf('amazon.com') < 0) {
     return []
   }
+  let images = new Set()
   // Valid for those who have multiple color SKUs
   let scriptContent = getScriptContentByXPath('//script[contains(text(), "jQuery.parseJSON")]')
-  console.log('scriptContent1 length', scriptContent.length);
+  if (scriptContent) {
+    console.log('scriptContent1 length', scriptContent.length);
 
-  let jsonContent = extractJsonSubstring(scriptContent)
-  console.log('jsonContent1 length', jsonContent.length);
-  console.log('jsonContent1', JSON.parse(jsonContent));
+    let jsonContent = extractJsonSubstring(scriptContent)
+    if (jsonContent) {
+      console.log('jsonContent1 length', jsonContent.length);
+      console.log('jsonContent1', JSON.parse(jsonContent));
 
-  let jsonObject = JSON.parse(jsonContent)
+      let jsonObject = JSON.parse(jsonContent)
 
-  let images = new Set()
 
-  if (Object.keys(jsonObject.colorImages).length > 0) {
-    for (let color in jsonObject.colorImages) {
-      console.log('color', color);
-      console.log('colorImages', jsonObject.colorImages[color]);
-      for (let i in jsonObject.colorImages[color]) {
-        images.add(jsonObject.colorImages[color][i].hiRes)
+      if (Object.keys(jsonObject.colorImages).length > 0) {
+        for (let color in jsonObject.colorImages) {
+          console.log('color', color);
+          console.log('colorImages', jsonObject.colorImages[color]);
+          for (let i in jsonObject.colorImages[color]) {
+            images.add(jsonObject.colorImages[color][i].hiRes)
+          }
+        }
       }
     }
-  } else {
+  }
+  if (images.size === 0) {
     // Otherwise, the link should have single SKU
     scriptContent = getScriptContentByXPath('//script[contains(text(), "ImageBlockATF")]')
     console.log('scriptContent2 length', scriptContent.length);
@@ -380,9 +385,10 @@ function getImageUrlsAmazon() {
     let matches = scriptContent.match(regex);
 
     if (matches.length > 0) {
-      let func = new Function('{' + matches[0].replace("'colorImages':", 'return') + '}');
-      let colorImages = func()
-      colorImages.initial.forEach(v => {
+      // let func = new Function('{' + matches[0].replace("'colorImages':", 'return') + '}');
+      // let colorImages = func()
+      const colorImageObj = JSON.parse('{'+matches[0].replaceAll("'",'"')+'}')
+      colorImageObj.colorImages.initial.forEach(v => {
         images.add(v.hiRes)
       })
     }
