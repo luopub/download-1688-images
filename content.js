@@ -141,6 +141,7 @@ function getImageUrls1688() {
   const imagesMain_raw = getImageUrlsByXpath('//div[contains(@class, "od-gallery-turn-item-wrapper")]/img[@class="od-gallery-img"]')
   const imagesMain = imagesMain_raw.map(v => v.replace('jpg_b.jpg', 'jpg'))
   const imagesDetail = getAllImageSrcsInShadowRoots('div#detail img')
+  const imagesSku = getImageUrlsByXpath('//div[@id="skuSelection"]//button[starts-with(@class,"sku-filter-button")]//img')
 
   if (imagesDetail.filter(v=>v.indexOf('lazyload.png')>=0).length > 0) {
     alert('请将网页拉到底后再下载！')
@@ -167,6 +168,17 @@ function getImageUrls1688() {
     const ext = match ? match[1] : 'jpg'
     imageUrls.push({
       filename: productId + '-detail-' + i + '.' + ext,
+      url: url
+    })
+  })
+
+  imagesSku.forEach((url, i) => {
+    const parsedUrl = new URL(url);
+    const match = parsedUrl.pathname.match(/\.([^.]+)$/)
+    const ext = match ? match[1] : 'jpg'
+    url = url.replace('jpg_sum.jpg', 'jpg')
+    imageUrls.push({
+      filename: productId + '-sku-' + i + '.' + ext,
       url: url
     })
   })
