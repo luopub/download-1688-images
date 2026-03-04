@@ -138,8 +138,8 @@ function getImageUrls1688() {
   if (window.location.href.indexOf('1688.com') < 0) {
     return []
   }
-  const imagesMain_raw = getImageUrlsByXpath('//div[contains(@class, "od-gallery-turn-item-wrapper")]/img[@class="od-gallery-img"]')
-  const imagesMain = imagesMain_raw.map(v => v.replace('jpg_b.jpg', 'jpg'))
+  const imagesMain_raw = getImageUrlsByXpath('//ul[contains(@class, "od-gallery-list")]/li//img')
+  const imagesMain = imagesMain_raw.map(v => v.replace('jpg_.webp', 'jpg'))
   const imagesDetail = getAllImageSrcsInShadowRoots('div#detail img')
   const imagesSku = getImageUrlsByXpath('//div[@id="skuSelection"]//button[starts-with(@class,"sku-filter-button")]//img')
 
