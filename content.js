@@ -141,7 +141,9 @@ function getImageUrls1688() {
   const imagesMain_raw = getImageUrlsByXpath('//ul[contains(@class, "od-gallery-list")]/li//img')
   const imagesMain = imagesMain_raw.map(v => v.replace('jpg_.webp', 'jpg'))
   const imagesDetail = getAllImageSrcsInShadowRoots('div#detail img')
-  const imagesSku = getImageUrlsByXpath('//div[@id="skuSelection"]//button[starts-with(@class,"sku-filter-button")]//img')
+  // const imagesSku = getImageUrlsByXpath('//div[@id="skuSelection"]//button[starts-with(@class,"sku-filter-button")]//img')
+  const imagesSku = getImageUrlsByXpath('//div[@id="skuSelection"]//img[@class="ant-image-img"]')
+  const imagesSku2 = getImageUrlsByXpath('//tbody[@class="ant-table-tbody"]/tr//div[@class="gyp-pro-table-title"]/img')
 
   if (imagesDetail.filter(v=>v.indexOf('lazyload.png')>=0).length > 0) {
     alert('请将网页拉到底后再下载！')
@@ -172,7 +174,9 @@ function getImageUrls1688() {
     })
   })
 
-  imagesSku.forEach((url, i) => {
+  const imgsSku = [...imagesSku, ...imagesSku2]
+
+  imgsSku.forEach((url, i) => {
     const parsedUrl = new URL(url);
     const match = parsedUrl.pathname.match(/\.([^.]+)$/)
     const ext = match ? match[1] : 'jpg'
